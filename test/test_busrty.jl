@@ -33,6 +33,12 @@ delayjumpset = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 algos = [DelayDirect(), DelayMNRM(), DelayRejection(), DelayDirectCR()]
 timestamps = [10, 20, 50, 200]
 
+jprob = DelayJumpProblem(jumpsys, dprob, algos[1], delayjumpset, de_chan0, save_positions=(false, false))
+ensprob = EnsembleProblem(jprob)
+@time ens = solve(ensprob, SSAStepper(), EnsembleSerial(), trajectories=samplesize, saveat = timestamps)
+a=@benchmark solve(ensprob, SSAStepper(), EnsembleSerial(), trajectories=samplesize, saveat = timestamps)
+
+
 bursty_mean(t) = a*b*min(t,τ)
 bursty_var(t) = 2*a*b^2*min(t,τ) + a*b*min(t,τ)
 samplesize = Int64(5e4)
@@ -49,13 +55,13 @@ function testalgo(algo_list,times)
         onealgotext=zeros(1,times)
         for i=1:times
             bench=runbenchmark(algo)
-            onealgotext[i]=median(bench).time
+            onealgotext[i]=median(bench).time/1e9
         end
         push!(test_all_algo,onealgotext)
     end
 end
 
-times=2
+times=5
 algo_list = [DelayMNRM(), DelayRejection(), DelayDirectCR()]
 
 test_all_algo=[]
@@ -74,12 +80,17 @@ std(test_all_algo[2])
 mean(test_all_algo[3])
 std(test_all_algo[3])
 
-#=
-jprob = DelayJumpProblem(jumpsys, dprob, algos[1], delayjumpset, de_chan0, save_positions=(false, false))
-ensprob = EnsembleProblem(jprob)
-@time ens = solve(ensprob, SSAStepper(), EnsembleSerial(), trajectories=samplesize, saveat = timestamps)
-a=@benchmark solve(ensprob, SSAStepper(), EnsembleSerial(), trajectories=samplesize, saveat = timestamps)
-median(a).time
-median(a)
-median(a).gctime
-=#
+algo_name = ["MNRM", "Rejection", "DirectCR"]
+meanlist=[mean(test_all_algo[i]) for i=1:length(test_all_algo)]
+stdlist=[std(test_all_algo[i]) for i=1:length(test_all_algo)]
+
+using Printf
+strmean = [@sprintf("%.3f", yi) for yi in meanlist]
+strstd = [@sprintf("%.3f", yi) for yi in stdlist]
+
+gr()
+p1=bar(algo_name,meanlist,ylims=(0,3),text=strmean,bar_width=0.1,
+       label="mean of time",text_position="outside")
+p2=bar(algo_name,stdlist,ylims=(0,0.3),text=strstd,bar_width=0.1,
+       label="std of time")
+plot(p1, p2, layout = (2,1))
