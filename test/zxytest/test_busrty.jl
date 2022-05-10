@@ -67,11 +67,19 @@ end
 
 df=DataFrame(mean=meanlist,median=medianlist,min=minlist,max=maxlist,std=stdlist)
 CSV.write("C:/Users/86158/Desktop/algotest/bursty_save_positions=f.csv",df)
+
+df=CSV.read("C:/Users/86158/Desktop/algotest/bursty_save_positions=f.csv",DataFrame)
+medianlist=df.median
+
 algo_name = ["Direct","Rejection","MNRM","DirectCR"]
 
 meanvalue=[string(round(mt,digits=8),"s") for mt in meanlist]
+medianvalue=[string(round(mt,digits=8),"s") for mt in medianlist]
 
 using Plots
 bar(algo_name,meanlist,legend=:false,title="bursty",ylabel="meantime")
 scatter!(algo_name, 0.3e-5 .+ meanlist , markeralpha=0, series_annotations=meanvalue)
+
+bar(algo_name,medianlist,legend=:false,title="bursty",ylabel="mediantime")
+scatter!(algo_name, 0.3e-5 .+ medianlist , markeralpha=0, series_annotations=medianvalue)
 

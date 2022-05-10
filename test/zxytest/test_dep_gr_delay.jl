@@ -64,8 +64,16 @@ end
 df=DataFrame(mean=meanlist,median=medianlist,min=minlist,max=maxlist,std=stdlist)
 CSV.write("C:/Users/86158/Desktop/algotest/dep_gr_save_positions=F.csv",df)
 
+df=CSV.read("C:/Users/86158/Desktop/algotest/dep_gr_save_positions=F.csv",DataFrame)
+medianlist=df.median
+
 sa=[string(round(mt,digits=6),"s") for mt in meanlist]
+medianvalue=[string(round(mt,digits=6),"s") for mt in medianlist]
+
 algo_name = ["Direct","Rejection","MNRM","DirectCR"]
 using Plots
 bar(algo_name,meanlist,legend=:false,title="delay_degradation",ylabel="meantime")
 scatter!(algo_name, 0.00015 .+ meanlist , markeralpha=0, series_annotations=sa)
+
+bar(algo_name,medianlist,legend=:false,title="delay_degradation",ylabel="mediantime")
+scatter!(algo_name, 0.00015 .+ medianlist , markeralpha=0, series_annotations=medianvalue)
