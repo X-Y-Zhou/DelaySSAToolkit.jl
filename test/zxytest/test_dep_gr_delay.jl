@@ -28,10 +28,19 @@ end
 delay_interrupt = Dict(4=>delay_affect!) 
 delaysets = DelayJumpSet(delay_trigger,delay_complete,delay_interrupt)
 
-de_chan0 = [[]]
-djprob = DelayJumpProblem(jumpsys, dprob, DelayMNRM(),  delaysets, de_chan0, save_positions=(false,false))
+algo_list =[DelayDirect(),DelayRejection(),DelayMNRM(),DelayDirectCR()]
 
-sol =@benchmark solve(djprob, SSAStepper(), seed=2, saveat =.1)
+djprob = DelayJumpProblem(jumpsys, dprob, algo_list[1],  delaysets, de_chan0, save_positions=(false,false))
+sol =@benchmark solve(djprob, SSAStepper(),saveat =.1)
+
+djprob = DelayJumpProblem(jumpsys, dprob,algo_list[2],  delaysets, de_chan0, save_positions=(false,false))
+sol =@benchmark solve(djprob, SSAStepper(),saveat =.1)
+
+djprob = DelayJumpProblem(jumpsys, dprob,algo_list[3],  delaysets, de_chan0, save_positions=(false,false))
+sol =@benchmark solve(djprob, SSAStepper(),saveat =.1)
+
+djprob = DelayJumpProblem(jumpsys, dprob,algo_list[4],  delaysets, de_chan0, save_positions=(false,false))
+sol =@benchmark solve(djprob, SSAStepper(),saveat =.1)
 
 meanlist=[]
 medianlist=[]
@@ -41,7 +50,7 @@ stdlist=[]
 function testalgo(algo_list)
     for algo in algo_list
         djprob = DelayJumpProblem(jumpsys, dprob,algo,delaysets, de_chan0, save_positions=(false,false))
-        a=@benchmark solve(jprob, SSAStepper(), saveat = timestamps)
+        a=@benchmark solve(djprob, SSAStepper(), saveat =.1)
         push!(meanlist,mean(a).time/1e9)
         push!(medianlist,median(a).time/1e9)
         push!(minlist,minimum(a).time/1e9)
@@ -50,14 +59,13 @@ function testalgo(algo_list)
     end
 end
 
-algo_list = [DelayMNRM(), DelayRejection(), DelayDirectCR()]
-
 @time testalgo(algo_list)
 
-meanlist
-medianlist
-minlist
-maxlist
-stdlist
 df=DataFrame(mean=meanlist,median=medianlist,min=minlist,max=maxlist,std=stdlist)
 CSV.write("C:/Users/86158/Desktop/algotest/dep_gr_save_positions=F.csv",df)
+
+sa=[string(round(mt,digits=6),"s") for mt in meanlist]
+algo_name = ["Direct","Rejection","MNRM","DirectCR"]
+using Plots
+bar(algo_name,meanlist,legend=:false,title="delay_degradation",ylabel="meantime")
+scatter!(algo_name, 0.00015 .+ meanlist , markeralpha=0, series_annotations=sa)

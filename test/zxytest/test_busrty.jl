@@ -29,16 +29,20 @@ delay_complete = Dict(1=>[1=>-1])
 delay_interrupt = Dict()
 delayjumpset = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 
-algos = [DelayDirect(), DelayMNRM(), DelayRejection(), DelayDirectCR()]
 timestamps = [10, 20, 50, 200]
+algo_list = [DelayDirect(),DelayRejection(),DelayMNRM(),DelayDirectCR()]
 
-jprob = DelayJumpProblem(jumpsys, dprob, algos[1], delayjumpset, de_chan0, save_positions=(false, false))
+jprob = DelayJumpProblem(jumpsys, dprob, algo_list[1], delayjumpset, de_chan0, save_positions=(false, false))
 a=@benchmark solve(jprob, SSAStepper(),saveat = timestamps)
-mean(a)
-median(a)
-minimum(a)
-maximum(a)
-std(a)
+
+jprob = DelayJumpProblem(jumpsys, dprob, algo_list[2], delayjumpset, de_chan0, save_positions=(false, false))
+a=@benchmark solve(jprob, SSAStepper(),saveat = timestamps)
+
+jprob = DelayJumpProblem(jumpsys, dprob, algo_list[3], delayjumpset, de_chan0, save_positions=(false, false))
+a=@benchmark solve(jprob, SSAStepper(),saveat = timestamps)
+
+jprob = DelayJumpProblem(jumpsys, dprob,algo_list[4] , delayjumpset, de_chan0, save_positions=(false, false))
+a=@benchmark solve(jprob, SSAStepper(),saveat = timestamps)
 
 
 meanlist=[]
@@ -48,6 +52,7 @@ maxlist=[]
 stdlist=[]
 function testalgo(algo_list)
     for algo in algo_list
+        #de_chan0 = [[]]
         jprob = DelayJumpProblem(jumpsys, dprob, algo, delayjumpset, de_chan0, save_positions=(false, false))
         a=@benchmark solve(jprob, SSAStepper(), saveat = timestamps)
         push!(meanlist,mean(a).time/1e9)
@@ -58,25 +63,15 @@ function testalgo(algo_list)
     end
 end
 
-algo_list = [DelayMNRM(), DelayRejection(), DelayDirectCR()]
-
 @time testalgo(algo_list)
 
-meanlist
-medianlist
-minlist
-maxlist
-stdlist
 df=DataFrame(mean=meanlist,median=medianlist,min=minlist,max=maxlist,std=stdlist)
 CSV.write("C:/Users/86158/Desktop/algotest/bursty_save_positions=f.csv",df)
+algo_name = ["Direct","Rejection","MNRM","DirectCR"]
 
+meanvalue=[string(round(mt,digits=8),"s") for mt in meanlist]
 
-using Printf
-strmean = [@sprintf("%.5fs", yi) for yi in meanlist]
-strstd = [@sprintf("%.3f", yi) for yi in stdlist]
-
-sa=[string(round(mt,digits=7),"s") for mt in meanlist]
-algo_name = ["MNRM", "Rejection", "DirectCR"]
 using Plots
-bar(algo_name,meanlist,legend=:false)
-scatter!(algo_name, 0.1e-5 .+ meanlist , markeralpha=0, series_annotations=sa)
+bar(algo_name,meanlist,legend=:false,title="bursty",ylabel="meantime")
+scatter!(algo_name, 0.3e-5 .+ meanlist , markeralpha=0, series_annotations=meanvalue)
+
