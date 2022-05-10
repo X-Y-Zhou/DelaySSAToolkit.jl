@@ -69,3 +69,14 @@ maxlist
 stdlist
 df=DataFrame(mean=meanlist,median=medianlist,min=minlist,max=maxlist,std=stdlist)
 CSV.write("C:/Users/86158/Desktop/algotest/bursty_save_positions=f.csv",df)
+
+
+using Printf
+strmean = [@sprintf("%.5fs", yi) for yi in meanlist]
+strstd = [@sprintf("%.3f", yi) for yi in stdlist]
+
+sa=[string(round(mt,digits=7),"s") for mt in meanlist]
+algo_name = ["MNRM", "Rejection", "DirectCR"]
+using Plots
+bar(algo_name,meanlist,legend=:false)
+scatter!(algo_name, 0.1e-5 .+ meanlist , markeralpha=0, series_annotations=sa)
