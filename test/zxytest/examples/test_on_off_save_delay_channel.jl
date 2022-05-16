@@ -25,29 +25,30 @@ u0 =@SVector [0,1,0]
 de_chan0 = [[]]
 tspan = (0.,tf)
 dprob = DiscreteProblem(u0, tspan)
-djprob = DelayJumpProblem(dprob, DelayRejection(), jumpset, delayjumpset, de_chan0, save_positions = (true,true),save_delay_channel = true)
 
+djprob = DelayJumpProblem(dprob, DelayDirect(), jumpset, delayjumpset, de_chan0, save_positions = (true,true),save_delay_channel = true)
 sol = @benchmark solve(djprob, SSAStepper())
 
+algo_list =[DelayDirect(),DelayRejection(),DelayMNRM(),DelayDirectCR()]
 meanlist=[]
 medianlist=[]
 minlist=[]
 maxlist=[]
 stdlist=[]
-function testalgo(algo_list)
-    for algo in algo_list
-        djprob = DelayJumpProblem(dprob, algo, jumpset, delayjumpset, de_chan0, save_positions = (true,true),save_delay_channel = true)
-        a=@benchmark solve(jprob, SSAStepper(), saveat = timestamps)
-        push!(meanlist,mean(a).time/1e9)
-        push!(medianlist,median(a).time/1e9)
-        push!(minlist,minimum(a).time/1e9)
-        push!(maxlist,maximum(a).time/1e9)
-        push!(stdlist,std(a).time/1e9)
-    end
-end
+algo_list[1]
 
-algo_list = [DelayMNRM(), DelayRejection(), DelayDirectCR()]
+djprob = DelayJumpProblem(dprob, DelayMNRM(), jumpset, delayjumpset, de_chan0, save_positions = (true,true),save_delay_channel = true)
+    a=@benchmark solve(djprob, SSAStepper())
+    push!(meanlist,copy(mean(a).time/1e9))
+    push!(medianlist,copy(median(a).time/1e9))
+    push!(minlist,copy(minimum(a).time/1e9))
+    push!(maxlist,copy(maximum(a).time/1e9))
+    push!(stdlist,copy(std(a).time/1e9))
+    print(djprob.aggregator," OK","\n")
 
+1:length(integrator.de_chan[1])
+1:1
+length([])
 @time testalgo(algo_list)
 
 meanlist

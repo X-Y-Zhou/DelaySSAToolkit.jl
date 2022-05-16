@@ -25,39 +25,38 @@ delay_complete = Dict(1=>[2=>1, 3=>-1])
 delayjumpset = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 
 de_chan0 = [[]]
-djprob = DelayJumpProblem(jumpsys, dprob, DelayRejection(), delayjumpset, de_chan0, save_positions=(true,true))
-sol = @benchmark solve(djprob, SSAStepper())
-std(sol)
-
 
 meanlist=[]
 medianlist=[]
 minlist=[]
 maxlist=[]
 stdlist=[]
-function testalgo(algo_list)
-    for algo in algo_list
-        jprob = DelayJumpProblem(jumpsys, dprob, algo, delayjumpset, de_chan0, save_positions=(true, true))
-        a=@benchmark solve(jprob, SSAStepper(), saveat = timestamps)
-        push!(meanlist,mean(a).time/1e9)
-        push!(medianlist,median(a).time/1e9)
-        push!(minlist,minimum(a).time/1e9)
-        push!(maxlist,maximum(a).time/1e9)
-        push!(stdlist,std(a).time/1e9)
-    end
+
+for algo in algo_list
+    djprob = DelayJumpProblem(jumpsys,dprob,algo,delayjumpset, de_chan0, save_positions=(false,false))
+    a=@benchmark solve(djprob, SSAStepper())
+    push!(meanlist,copy(mean(a).time/1e9))
+    push!(medianlist,copy(median(a).time/1e9))
+    push!(minlist,copy(minimum(a).time/1e9))
+    push!(maxlist,copy(maximum(a).time/1e9))
+    push!(stdlist,copy(std(a).time/1e9))
+    print(djprob.aggregator," OK","\n")
 end
 
-algo_list = [DelayMNRM(), DelayRejection(), DelayDirectCR()]
-
-@time testalgo(algo_list)
-
-meanlist
-medianlist
-minlist
-maxlist
-stdlist
 df=DataFrame(mean=meanlist,median=medianlist,min=minlist,max=maxlist,std=stdlist)
-CSV.write("C:/Users/86158/Desktop/algotest/index_reac_save_positions=T.csv",df)
+CSV.write("test/zxytest/results/SEIR_save_positions=f.csv",df)
+
+df=CSV.read("test/zxytest/results/SEIR_save_positions=f.csv",DataFrame)
+medianlist=df.median
+
+medianvalue=[string(round(mt,digits=6),"s") for mt in medianlist]
+
+algo_name = ["DelayDirect","DelayRejection","DelayMNRM","DelayDirectCR"]
+using Plots
+p1=bar(algo_name,medianlist,legend=:false,title="SEIR",ylabel="mediantime")
+scatter!(algo_name, 0.0002 .+ medianlist , markeralpha=0, series_annotations=medianvalue)
+savefig(p1,"test/zxytest/results/SEIR_median.png")
+
 #=
 function runbenchmark(algo)
     djprob = DelayJumpProblem(dprob, algo, jumpset, delayjumpset, de_chan0, save_positions = (true,true),save_delay_channel = true)

@@ -47,22 +47,20 @@ medianlist=[]
 minlist=[]
 maxlist=[]
 stdlist=[]
-function testalgo(algo_list)
-    for algo in algo_list
-        djprob = DelayJumpProblem(jumpsys, dprob,algo,delaysets, de_chan0, save_positions=(false,false))
-        a=@benchmark solve(djprob, SSAStepper(), saveat =.1)
-        push!(meanlist,mean(a).time/1e9)
-        push!(medianlist,median(a).time/1e9)
-        push!(minlist,minimum(a).time/1e9)
-        push!(maxlist,maximum(a).time/1e9)
-        push!(stdlist,std(a).time/1e9)
-    end
+
+for algo in algo_list
+    djprob = DelayJumpProblem(jumpsys, dprob,algo,delaysets, de_chan0, save_positions=(false,false))
+    a=@benchmark solve(djprob, SSAStepper())
+    push!(meanlist,mean(a).time/1e9)
+    push!(medianlist,median(a).time/1e9)
+    push!(minlist,minimum(a).time/1e9)
+    push!(maxlist,maximum(a).time/1e9)
+    push!(stdlist,std(a).time/1e9)
+    print(djprob.aggregator," OK","\n")
 end
 
-@time testalgo(algo_list)
-
 df=DataFrame(mean=meanlist,median=medianlist,min=minlist,max=maxlist,std=stdlist)
-CSV.write("C:/Users/86158/Desktop/algotest/dep_gr_save_positions=F.csv",df)
+CSV.write("test/zxytest/results/delay_degradation_save_positions=f.csv",df)
 
 df=CSV.read("C:/Users/86158/Desktop/algotest/dep_gr_save_positions=F.csv",DataFrame)
 medianlist=df.median

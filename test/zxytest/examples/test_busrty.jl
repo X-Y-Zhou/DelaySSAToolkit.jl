@@ -29,20 +29,19 @@ delay_complete = Dict(1=>[1=>-1])
 delay_interrupt = Dict()
 delayjumpset = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 
-timestamps = [10, 20, 50, 200]
 algo_list = [DelayDirect(),DelayRejection(),DelayMNRM(),DelayDirectCR()]
 
 jprob = DelayJumpProblem(jumpsys, dprob, algo_list[1], delayjumpset, de_chan0, save_positions=(false, false))
-a=@benchmark solve(jprob, SSAStepper(),saveat = timestamps)
+a=@benchmark solve(jprob, SSAStepper())
 
 jprob = DelayJumpProblem(jumpsys, dprob, algo_list[2], delayjumpset, de_chan0, save_positions=(false, false))
-a=@benchmark solve(jprob, SSAStepper(),saveat = timestamps)
+a=@benchmark solve(jprob, SSAStepper())
 
 jprob = DelayJumpProblem(jumpsys, dprob, algo_list[3], delayjumpset, de_chan0, save_positions=(false, false))
-a=@benchmark solve(jprob, SSAStepper(),saveat = timestamps)
+a=@benchmark solve(jprob, SSAStepper())
 
 jprob = DelayJumpProblem(jumpsys, dprob,algo_list[4] , delayjumpset, de_chan0, save_positions=(false, false))
-a=@benchmark solve(jprob, SSAStepper(),saveat = timestamps)
+a=@benchmark solve(jprob, SSAStepper())
 
 
 meanlist=[]
@@ -54,7 +53,7 @@ function testalgo(algo_list)
     for algo in algo_list
         #de_chan0 = [[]]
         jprob = DelayJumpProblem(jumpsys, dprob, algo, delayjumpset, de_chan0, save_positions=(false, false))
-        a=@benchmark solve(jprob, SSAStepper(), saveat = timestamps)
+        a=@benchmark solve(jprob, SSAStepper())
         push!(meanlist,mean(a).time/1e9)
         push!(medianlist,median(a).time/1e9)
         push!(minlist,minimum(a).time/1e9)
@@ -66,9 +65,10 @@ end
 @time testalgo(algo_list)
 
 df=DataFrame(mean=meanlist,median=medianlist,min=minlist,max=maxlist,std=stdlist)
-CSV.write("C:/Users/86158/Desktop/algotest/bursty_save_positions=f.csv",df)
+CSV.write("test/zxytest/results/bursty_save_positions=f.csv",df)
 
 df=CSV.read("C:/Users/86158/Desktop/algotest/bursty_save_positions=f.csv",DataFrame)
+
 medianlist=df.median
 
 algo_name = ["Direct","Rejection","MNRM","DirectCR"]
