@@ -3,7 +3,7 @@ module DelaySSAToolkit
 using Reexport
 @reexport using DiffEqBase
 
-import DiffEqBase: DiscreteCallback, init, solve, solve!, plot_indices, initialize!
+import DiffEqBase: DiscreteCallback, init, solve, solve!, initialize!
 # Types and Structs
 using DiffEqJump
 import DiffEqJump: AbstractJumpAggregator, AbstractJump, JumpProblem, ConstantRateJump, VariableRateJump, RegularJump, MassActionJump, JumpSet, SSAStepper
@@ -12,16 +12,15 @@ import DiffEqJump: make_dependency_graph, add_self_dependencies!, var_to_jumps_m
 # other functions
 import DiffEqJump: using_params, get_jump_info_fwrappers, build_jump_aggregation, isinplace_jump, extend_problem, build_variable_callback, get_num_majumps, evalrxrate, executerx!, executerx
 
-using Catalyst
-import Catalyst: JumpSystem, states, equations, assemble_jumps, asgraph,  variable_dependencies, eqeq_dependencies, value
+# using Catalyst 
 using ModelingToolkit
-import ModelingToolkit: JumpSysMajParamMapper, assemble_maj, assemble_vrj, assemble_crj
+import ModelingToolkit: JumpSysMajParamMapper, assemble_maj, assemble_vrj, assemble_crj, eqeq_dependencies, variable_dependencies, JumpSystem, states, equations, asgraph, value
 
 using DataStructures
 import DataStructures: update!
 
 using UnPack, Random, LinearAlgebra, DiffEqBase, StaticArrays, DocStringExtensions
-using FunctionWrappers, ArrayInterface, RandomNumbers, BangBang
+using FunctionWrappers, ArrayInterface, RandomNumbers
 using StaticArrays, Base.Threads
 import Base.Threads
 @static if VERSION < v"1.3"
@@ -40,7 +39,7 @@ include("delayaggregator/delaydirectCR.jl")
 include("delaySSA_stepper.jl")
 include("utils.jl")
 
-export DelayJumpProblem, DelayJumpSet, SSAStepper, MassActionJump, ConstantRateJump, JumpProblem
+export DelayJumpProblem, DelayJumpSet, SSAStepper, MassActionJump, ConstantRateJump, JumpProblem, JumpSystem
 export DelayRejection, DelayMNRM, DelayDirect, DelayDirectCR
 export solve, remake
 
