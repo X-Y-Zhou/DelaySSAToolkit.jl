@@ -4,7 +4,8 @@
 [![Build Status](https://github.com/palmtree2013/DelaySSAdocs.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/palmtree2013/DelaySSAToolkit.jl/actions/workflows/CI.yml?query=branch%3Amain)
 <!-- [![Coverage](https://codecov.io/gh/palmtree2013/DelaySSAToolkit.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/palmtree2013/DelaySSAToolkit.jl) -->
 
-DelaySSAToolkit.jl is a tool developed on top of [DiffEqJump.jl](https://github.com/SciML/DiffEqJump.jl) in Julia which solves the stochastic simulation [[1]](#1) coupled with delays and contains the following features:
+DelaySSAToolkit.jl is a tool developed on top of [DiffEqJump.jl](https://github.com/SciML/DiffEqJump.jl) in Julia which solves the stochastic simulation [[1]](#1) coupled with delays. A portion of this library’s code is taken from the MIT licensed DiffEqJump.jl library. 
+That code is copyright (c) 2017: Chris Rackauckas. This package contains the following features:
 
 ## Features
 - Various delay stochastic simulation algorithms are provided [[2-6]](#2);
@@ -19,7 +20,7 @@ More information is available in the [documentation](https://palmtree2013.github
 ## Installation
 DelaySSAToolkit can be installed through the Julia package manager:
 ```julia 
-]add https://github.com/palmtree2013/DelaySSAToolkit.jl
+]add DelaySSAToolkit
 using DelaySSAToolkit
 ```
 and you might need to run
@@ -34,8 +35,8 @@ for the first time after installation.
 ### SEIR model
 Check [this example](https://palmtree2013.github.io/DelaySSAToolkit.jl/dev/tutorials/tutorials/) for more details.
 ```julia
-using DelaySSAToolkit, Catalyst
-using DiffEqJump
+using Catalyst
+using DelaySSAToolkit
 # Model: Markovian part
 rn = @reaction_network begin
     ρ, S+I --> E+I
@@ -62,14 +63,16 @@ jumpsys = convert(JumpSystem, rn, combinatoric_ratelaws=false)
 dprob = DiscreteProblem(jumpsys,u0,tspan,ps)
 djprob = DelayJumpProblem(jumpsys, dprob, DelayRejection(), delayjumpset, de_chan0, save_positions=(true,true))
 sol = solve(djprob, SSAStepper())
+using Plots; theme(:vibrant)
+plot(sol, label = ["S" "I" "E" "R"], linewidth = 3, legend = :top, ylabel = "# of individuals", xlabel = "Time", fmt=:png)
 ```
-![seir](docs/src/assets/seir.svg)
+![seir](docs/src/assets/seir.png)
 
 ### A bursty model [[7]](#7)
 Check this [example](https://palmtree2013.github.io/DelaySSAToolkit.jl/dev/tutorials/bursty/) for more details.
 ```julia
 using DelaySSAToolkit
-using Catalyst, DiffEqJump
+using Catalyst
 # Model: Markovian part
 @parameters a b t
 @variables X(t)
@@ -100,7 +103,7 @@ jumpsys = convert(JumpSystem, rs, combinatoric_ratelaws=false)
 dprob = DiscreteProblem(jumpsys, u0, tspan, ps)
 djprob = DelayJumpProblem(jumpsys, dprob, DelayRejection(), delayjumpset, de_chan0, save_positions=(false,false))
 ensprob = EnsembleProblem(djprob)
-@time ens = solve(ensprob, SSAStepper(), EnsembleThreads(), trajectories=10^5)
+ens = solve(ensprob, SSAStepper(), EnsembleThreads(), trajectories=10^5)
 ```
 ![bursty](docs/src/assets/bursty.svg)
 
